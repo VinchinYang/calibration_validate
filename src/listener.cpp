@@ -27,9 +27,9 @@ void markerCallback(const beginner_tutorials::marker_6dof::ConstPtr& msg_rt)
   ROS_INFO_STREAM("marker_6dof received at " << msg_rt->header.stamp.toSec());
 }
 
-void callback(const sensor_msgs::PointCloud2::ConstPtr& msg_pc, const sensor_msgs::Image::ConstPtr& msg_image){
+void callback(const sensor_msgs::PointCloud2::ConstPtr& msg_pc, const beginner_tutorials::marker_6dof::ConstPtr& msg_rt){
   ROS_INFO_STREAM("Velodyne scan received at " << msg_pc->header.stamp.toSec());
-  ROS_INFO_STREAM("Image received at " << msg_image->header.stamp.toSec());
+  ROS_INFO_STREAM("marker_6dof received at " << msg_rt->header.stamp.toSec());
   pcl::PointCloud<pcl::PointXYZ> point_cloud;
   //pcl::PointCloud<myPointXYZRID> newPoint_cloud;
   pcl::fromROSMsg(*msg_pc, point_cloud);
@@ -66,10 +66,8 @@ int main(int argc, char **argv)
 
   message_filters::Subscriber<sensor_msgs::PointCloud2> cloud_sub(n, "/pandar_points", 1);
   message_filters::Subscriber<beginner_tutorials::marker_6dof> rt_sub(n, "/lidar_camera_calibration_rt", 1);
-  message_filters::Subscriber<sensor_msgs::Image> image_sub(n, "/camera/image", 1);
-  //typedef sync_policies::ApproximateTime<sensor_msgs::PointCloud2, beginner_tutorials::marker_6dof> MySyncPolicy;
-  typedef sync_policies::ApproximateTime<sensor_msgs::PointCloud2, sensor_msgs::Image> MySyncPolicy;
-  Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), cloud_sub, image_sub);
+  typedef sync_policies::ApproximateTime<sensor_msgs::PointCloud2, beginner_tutorials::marker_6dof> MySyncPolicy;
+  Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), cloud_sub, rt_sub);
   sync.registerCallback(boost::bind(&callback, _1, _2));
   ROS_INFO("sync, ok");
   /**
